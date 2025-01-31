@@ -49,8 +49,6 @@ jobs:
           # Define the openapi2jsonschema command
           OPENAPI2JSONSCHEMABIN="docker run -i -v ${TEMP_DIR}:/out/schemas --user "$(id -u):$(id -g)" ghcr.io/yannh/openapi2jsonschema:latest"
 
-          cd "${TEMP_DIR}"
-
           # Process each version
           echo "Found versions: ${VERSIONS}"
           for K8S_VERSION in ${VERSIONS}; do
@@ -64,6 +62,8 @@ jobs:
 
             SCHEMA="https://raw.githubusercontent.com/kubernetes/kubernetes/${K8S_VERSION}/api/openapi-spec/swagger.json"
             PREFIX="https://kubernetesjsonschema.dev/${K8S_VERSION}/_definitions.json"
+
+            cd "${TEMP_DIR}"
 
             # Generate standalone-strict schemas
             $OPENAPI2JSONSCHEMABIN -o "schemas/${K8S_VERSION}-standalone-strict" --expanded --kubernetes --stand-alone --strict "${SCHEMA}"
