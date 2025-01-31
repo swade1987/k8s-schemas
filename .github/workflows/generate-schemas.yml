@@ -64,26 +64,26 @@ jobs:
 
             # Generate standalone-strict schemas
             echo "Generating standalone-strict schemas..."
-            docker run -i -v "${VERSION_DIR}:/out/schemas" --user "$(id -u):$(id -g)" ghcr.io/yannh/openapi2jsonschema:latest \
-              -o "/out/schemas/standalone-strict" --expanded --kubernetes --stand-alone --strict "${SCHEMA}"
-            docker run -i -v "${VERSION_DIR}:/out/schemas" --user "$(id -u):$(id -g)" ghcr.io/yannh/openapi2jsonschema:latest \
-              -o "/out/schemas/standalone-strict" --kubernetes --stand-alone --strict "${SCHEMA}"
+            docker run -i -v "${VERSION_DIR}:/schemas" --user "$(id -u):$(id -g)" ghcr.io/yannh/openapi2jsonschema:latest \
+              -o "/schemas/standalone-strict" --expanded --kubernetes --stand-alone --strict "${SCHEMA}"
+            docker run -i -v "${VERSION_DIR}:/schemas" --user "$(id -u):$(id -g)" ghcr.io/yannh/openapi2jsonschema:latest \
+              -o "/schemas/standalone-strict" --kubernetes --stand-alone --strict "${SCHEMA}"
             (cd "${VERSION_DIR}" && zip -r "kubernetes-json-schema-${K8S_VERSION}-standalone-strict.zip" standalone-strict)
 
             # Generate standalone schemas
             echo "Generating standalone schemas..."
-            docker run -i -v "${VERSION_DIR}:/out/schemas" --user "$(id -u):$(id -g)" ghcr.io/yannh/openapi2jsonschema:latest \
-              -o "/out/schemas/standalone" --expanded --kubernetes --stand-alone "${SCHEMA}"
-            docker run -i -v "${VERSION_DIR}:/out/schemas" --user "$(id -u):$(id -g)" ghcr.io/yannh/openapi2jsonschema:latest \
-              -o "/out/schemas/standalone" --kubernetes --stand-alone "${SCHEMA}"
+            docker run -i -v "${VERSION_DIR}:/schemas" --user "$(id -u):$(id -g)" ghcr.io/yannh/openapi2jsonschema:latest \
+              -o "/schemas/standalone" --expanded --kubernetes --stand-alone "${SCHEMA}"
+            docker run -i -v "${VERSION_DIR}:/schemas" --user "$(id -u):$(id -g)" ghcr.io/yannh/openapi2jsonschema:latest \
+              -o "/schemas/standalone" --kubernetes --stand-alone "${SCHEMA}"
             (cd "${VERSION_DIR}" && zip -r "kubernetes-json-schema-${K8S_VERSION}-standalone.zip" standalone)
 
             # Generate local schemas
             echo "Generating local schemas..."
-            docker run -i -v "${VERSION_DIR}:/out/schemas" --user "$(id -u):$(id -g)" ghcr.io/yannh/openapi2jsonschema:latest \
-              -o "/out/schemas/local" --expanded --kubernetes "${SCHEMA}"
-            docker run -i -v "${VERSION_DIR}:/out/schemas" --user "$(id -u):$(id -g)" ghcr.io/yannh/openapi2jsonschema:latest \
-              -o "/out/schemas/local" --kubernetes "${SCHEMA}"
+            docker run -i -v "${VERSION_DIR}:/schemas" --user "$(id -u):$(id -g)" ghcr.io/yannh/openapi2jsonschema:latest \
+              -o "/schemas/local" --expanded --kubernetes "${SCHEMA}"
+            docker run -i -v "${VERSION_DIR}:/schemas" --user "$(id -u):$(id -g)" ghcr.io/yannh/openapi2jsonschema:latest \
+              -o "/schemas/local" --kubernetes "${SCHEMA}"
             (cd "${VERSION_DIR}" && zip -r "kubernetes-json-schema-${K8S_VERSION}-local.zip" local)
 
             # Create GitHub release
