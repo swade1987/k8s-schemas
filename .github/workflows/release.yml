@@ -2,7 +2,7 @@ name: Test Generate Kubernetes JSON Schemas
 
 on:
   pull_request:
-    branches: [ master ]
+    branches: [ main ]
   workflow_dispatch:      # Allow manual triggers
 
 env:
