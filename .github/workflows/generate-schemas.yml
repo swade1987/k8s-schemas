@@ -69,19 +69,20 @@ jobs:
             $OPENAPI2JSONSCHEMABIN -o "schemas/${K8S_VERSION}-standalone-strict" --expanded --kubernetes --stand-alone --strict "${SCHEMA}"
             $OPENAPI2JSONSCHEMABIN -o "schemas/${K8S_VERSION}-standalone-strict" --kubernetes --stand-alone --strict "${SCHEMA}"
 
+            printf "ls -lart\n"
             ls -lart
 
-#            zip -r "kubernetes-json-schema-${K8S_VERSION}-standalone-strict.zip" "schemas/${K8S_VERSION}-standalone-strict/"
-#
-#            # Generate standalone schemas
-#            $OPENAPI2JSONSCHEMABIN -o "schemas/${K8S_VERSION}-standalone" --expanded --kubernetes --stand-alone "${SCHEMA}"
-#            $OPENAPI2JSONSCHEMABIN -o "schemas/${K8S_VERSION}-standalone" --kubernetes --stand-alone "${SCHEMA}"
-#            zip -r "kubernetes-json-schema-${K8S_VERSION}-standalone.zip" "schemas/${K8S_VERSION}-standalone/"
-#
-#            # Generate local schemas
-#            $OPENAPI2JSONSCHEMABIN -o "schemas/${K8S_VERSION}-local" --expanded --kubernetes "${SCHEMA}"
-#            $OPENAPI2JSONSCHEMABIN -o "schemas/${K8S_VERSION}-local" --kubernetes "${SCHEMA}"
-#            zip -r "kubernetes-json-schema-${K8S_VERSION}-local.zip" "schemas/${K8S_VERSION}-local/"
+            zip -r "kubernetes-json-schema-${K8S_VERSION}-standalone-strict.zip" "schemas/${K8S_VERSION}-standalone-strict/"
+
+            # Generate standalone schemas
+            $OPENAPI2JSONSCHEMABIN -o "schemas/${K8S_VERSION}-standalone" --expanded --kubernetes --stand-alone "${SCHEMA}"
+            $OPENAPI2JSONSCHEMABIN -o "schemas/${K8S_VERSION}-standalone" --kubernetes --stand-alone "${SCHEMA}"
+            zip -r "kubernetes-json-schema-${K8S_VERSION}-standalone.zip" "schemas/${K8S_VERSION}-standalone/"
+
+            # Generate local schemas
+            $OPENAPI2JSONSCHEMABIN -o "schemas/${K8S_VERSION}-local" --expanded --kubernetes "${SCHEMA}"
+            $OPENAPI2JSONSCHEMABIN -o "schemas/${K8S_VERSION}-local" --kubernetes "${SCHEMA}"
+            zip -r "kubernetes-json-schema-${K8S_VERSION}-local.zip" "schemas/${K8S_VERSION}-local/"
 
             # Create GitHub release
             echo "Creating release for ${K8S_VERSION}..."
