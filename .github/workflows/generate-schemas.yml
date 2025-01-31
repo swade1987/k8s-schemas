@@ -48,7 +48,7 @@ jobs:
 
           # Process each version
           echo "Found versions: ${VERSIONS}"
-          for K8S_VERSION in ${VERSIONS} master; do
+          for K8S_VERSION in ${VERSIONS}; do
             echo "Processing version: ${K8S_VERSION}"
 
             # Skip if release already exists
@@ -104,4 +104,6 @@ jobs:
             # Clean up version directory
             sudo rm -rf "${VERSION_DIR}"
             echo "Completed processing ${K8S_VERSION}"
-            done
+
+            exit 1
+          done
