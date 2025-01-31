@@ -27,9 +27,10 @@ jobs:
 
       - name: Process test version
         run: |
-          # Create temp directory for testing
+          # Create temp directory for testing with appropriate permissions
           TEMP_DIR=$(mktemp -d)
-          trap 'rm -rf "${TEMP_DIR}"' EXIT
+          chmod 777 "${TEMP_DIR}"
+          trap 'sudo rm -rf "${TEMP_DIR}"' EXIT
 
           K8S_VERSION="${TEST_VERSION}"
           echo "Testing schema generation with version: ${K8S_VERSION}"
@@ -37,28 +38,29 @@ jobs:
           SCHEMA="https://raw.githubusercontent.com/kubernetes/kubernetes/${K8S_VERSION}/api/openapi-spec/swagger.json"
           VERSION_DIR="${TEMP_DIR}/${K8S_VERSION}"
           mkdir -p "${VERSION_DIR}"
+          chmod 777 "${VERSION_DIR}"
 
           # Generate standalone-strict schemas
           echo "Generating standalone-strict schemas..."
-          docker run -i -v "${VERSION_DIR}:/out/schemas" ghcr.io/yannh/openapi2jsonschema:latest \
+          docker run -i -v "${VERSION_DIR}:/out/schemas" --user "$(id -u):$(id -g)" ghcr.io/yannh/openapi2jsonschema:latest \
             -o "/out/schemas/standalone-strict" --expanded --kubernetes --stand-alone --strict "${SCHEMA}"
-          docker run -i -v "${VERSION_DIR}:/out/schemas" ghcr.io/yannh/openapi2jsonschema:latest \
+          docker run -i -v "${VERSION_DIR}:/out/schemas" --user "$(id -u):$(id -g)" ghcr.io/yannh/openapi2jsonschema:latest \
             -o "/out/schemas/standalone-strict" --kubernetes --stand-alone --strict "${SCHEMA}"
           (cd "${VERSION_DIR}" && zip -r "kubernetes-json-schema-${K8S_VERSION}-standalone-strict.zip" standalone-strict)
 
           # Generate standalone schemas
           echo "Generating standalone schemas..."
-          docker run -i -v "${VERSION_DIR}:/out/schemas" ghcr.io/yannh/openapi2jsonschema:latest \
+          docker run -i -v "${VERSION_DIR}:/out/schemas" --user "$(id -u):$(id -g)" ghcr.io/yannh/openapi2jsonschema:latest \
             -o "/out/schemas/standalone" --expanded --kubernetes --stand-alone "${SCHEMA}"
-          docker run -i -v "${VERSION_DIR}:/out/schemas" ghcr.io/yannh/openapi2jsonschema:latest \
+          docker run -i -v "${VERSION_DIR}:/out/schemas" --user "$(id -u):$(id -g)" ghcr.io/yannh/openapi2jsonschema:latest \
             -o "/out/schemas/standalone" --kubernetes --stand-alone "${SCHEMA}"
           (cd "${VERSION_DIR}" && zip -r "kubernetes-json-schema-${K8S_VERSION}-standalone.zip" standalone)
 
           # Generate local schemas
           echo "Generating local schemas..."
-          docker run -i -v "${VERSION_DIR}:/out/schemas" ghcr.io/yannh/openapi2jsonschema:latest \
+          docker run -i -v "${VERSION_DIR}:/out/schemas" --user "$(id -u):$(id -g)" ghcr.io/yannh/openapi2jsonschema:latest \
             -o "/out/schemas/local" --expanded --kubernetes "${SCHEMA}"
-          docker run -i -v "${VERSION_DIR}:/out/schemas" ghcr.io/yannh/openapi2jsonschema:latest \
+          docker run -i -v "${VERSION_DIR}:/out/schemas" --user "$(id -u):$(id -g)" ghcr.io/yannh/openapi2jsonschema:latest \
             -o "/out/schemas/local" --kubernetes "${SCHEMA}"
           (cd "${VERSION_DIR}" && zip -r "kubernetes-json-schema-${K8S_VERSION}-local.zip" local)
 
@@ -75,10 +77,13 @@ jobs:
               exit 1
             fi
             echo "✓ Validated: $zip_file"
+            # List contents of the zip file
+            echo "Contents of $zip_file:"
+            unzip -l "$zip_file"
           done
 
-          # Clean up version directory
-          rm -rf "${VERSION_DIR}"
+          # Clean up version directory (using sudo due to potential permission issues)
+          sudo rm -rf "${VERSION_DIR}"
           echo "Completed test processing for ${K8S_VERSION}"
 
       - name: Upload test artifacts
