@@ -73,7 +73,7 @@ jobs:
             # Create GitHub release
             echo "Creating release for ${K8S_VERSION}..."
             gh release create "${K8S_VERSION}" \
-              "${VERSION_DIR}"/*.zip \
+              kubernetes-json-schema-${K8S_VERSION}-standalone-strict.zip \
               --title "Kubernetes ${K8S_VERSION} JSON Schema" \
               --notes "JSON Schema files for Kubernetes ${K8S_VERSION}
 
