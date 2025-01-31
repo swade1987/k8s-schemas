@@ -1,20 +1,18 @@
 name: Generate Kubernetes JSON Schemas
 
 on:
-  pull_request:
-    branches: [ main ]
-#  schedule:
-#    - cron: '0 0 * * *'  # Run daily at midnight
-  workflow_dispatch:      # Allow manual triggers
+  schedule:
+    - cron: '0 0 * * *'  # Run daily at midnight
+  workflow_dispatch:  # Allow manual triggers
 
 env:
-  MIN_K8S_VERSION: 29    # Minimum Kubernetes minor version to process
+  MIN_K8S_VERSION: "29"  # Minimum Kubernetes minor version to process
 
 jobs:
   generate-schemas:
     runs-on: ubuntu-latest
     permissions:
-      contents: write     # Needed for creating releases
+      contents: write  # Needed for creating releases
 
     steps:
       - name: Checkout repository
