@@ -90,11 +90,13 @@ jobs:
               Generated on: $(date -u '+%Y-%m-%d %H:%M:%S UTC')" \
               --repo "${{ github.repository }}"
 
-            # Clean up version directory
-            sudo rm -rf "*.zip" \
-              "${K8S_VERSION}-standalone-strict/" \
-                "${K8S_VERSION}-standalone/" \
-                "${K8S_VERSION}-local/"
+            # Cleanup
+            rm -f ./*.zip
+            rm -rf "${K8S_VERSION}-standalone-strict/" \
+            "${K8S_VERSION}-standalone/" \
+            "${K8S_VERSION}-local/"
             echo "Completed processing ${K8S_VERSION}"
+
+            ls -lart
 
           done
