@@ -24,6 +24,8 @@ jobs:
           sudo apt-get install -y jq zip
 
       - name: Get and process Kubernetes versions
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           # Create temp directory with appropriate permissions
           TEMP_DIR=$(mktemp -d)
@@ -89,17 +91,15 @@ jobs:
               --title "Kubernetes ${K8S_VERSION} JSON Schema" \
               --notes "JSON Schema files for Kubernetes ${K8S_VERSION}
 
-  ## Contents
-  - standalone-strict: Schema files with strict validation
-  - standalone: Schema files with standard validation
-  - local: Schema files for local validation
+              ## Contents
+              - standalone-strict: Schema files with strict validation
+              - standalone: Schema files with standard validation
+              - local: Schema files for local validation
 
-Generated on: $(date -u '+%Y-%m-%d %H:%M:%S UTC')" \
-  --repo "${{ github.repository }}"
+              Generated on: $(date -u '+%Y-%m-%d %H:%M:%S UTC')" \
+              --repo "${{ github.repository }}"
 
-  # Clean up version directory
-  sudo rm -rf "${VERSION_DIR}"
-  echo "Completed processing ${K8S_VERSION}"
-  done
-  env:
-    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+            # Clean up version directory
+            sudo rm -rf "${VERSION_DIR}"
+            echo "Completed processing ${K8S_VERSION}"
+            done
