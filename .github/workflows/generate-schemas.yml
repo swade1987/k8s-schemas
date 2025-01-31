@@ -1,8 +1,10 @@
 name: generate-schemas
 
 on:
-  schedule:
-    - cron: '0 0 * * *'  # Run daily at midnight
+  pull_request:
+    branches: [ main ]
+#  schedule:
+#    - cron: '0 0 * * *'  # Run daily at midnight
   workflow_dispatch:  # Allow manual triggers
 
 env:
