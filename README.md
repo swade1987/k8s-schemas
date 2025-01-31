@@ -1,6 +1,16 @@
-# k8s-schemas
+# Kubernetes JSON Schema
 
-JSON Schema files for validating Kubernetes resource definitions (1.29+)
+This repository provides JSON Schema files for Kubernetes versions 1.29+.
+The schemas are automatically generated using [openapi2jsonschema](https://github.com/yannh/openapi2jsonschema).
+
+## Usage
+
+Download the schema version you need from the [Releases](https://github.com/swade1987/k8s-schemas/releases) page.
+
+Each release contains three ZIP files:
+- `standalone-strict`: Schema files with strict validation
+- `standalone`: Schema files with standard validation
+- `local`: Schema files for local validation
 
 ## Features
 
