@@ -1,0 +1,113 @@
+name: Test Generate Kubernetes JSON Schemas
+
+on:
+  pull_request:
+    branches: [ master ]
+  workflow_dispatch:      # Allow manual triggers
+
+env:
+  MIN_K8S_VERSION: 29    # Minimum Kubernetes minor version to process
+  # Limit to one version for PR testing
+  TEST_VERSION: "v1.29.0"
+
+jobs:
+  test-schema-generation:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write     # Needed for creating releases
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install required tools
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq zip
+
+      - name: Process test version
+        run: |
+          # Create temp directory for testing
+          TEMP_DIR=$(mktemp -d)
+          trap 'rm -rf "${TEMP_DIR}"' EXIT
+
+          K8S_VERSION="${TEST_VERSION}"
+          echo "Testing schema generation with version: ${K8S_VERSION}"
+
+          SCHEMA="https://raw.githubusercontent.com/kubernetes/kubernetes/${K8S_VERSION}/api/openapi-spec/swagger.json"
+          VERSION_DIR="${TEMP_DIR}/${K8S_VERSION}"
+          mkdir -p "${VERSION_DIR}"
+
+          # Generate standalone-strict schemas
+          echo "Generating standalone-strict schemas..."
+          docker run -i -v "${VERSION_DIR}:/out/schemas" ghcr.io/yannh/openapi2jsonschema:latest \
+            -o "/out/schemas/standalone-strict" --expanded --kubernetes --stand-alone --strict "${SCHEMA}"
+          docker run -i -v "${VERSION_DIR}:/out/schemas" ghcr.io/yannh/openapi2jsonschema:latest \
+            -o "/out/schemas/standalone-strict" --kubernetes --stand-alone --strict "${SCHEMA}"
+          (cd "${VERSION_DIR}" && zip -r "kubernetes-json-schema-${K8S_VERSION}-standalone-strict.zip" standalone-strict)
+
+          # Generate standalone schemas
+          echo "Generating standalone schemas..."
+          docker run -i -v "${VERSION_DIR}:/out/schemas" ghcr.io/yannh/openapi2jsonschema:latest \
+            -o "/out/schemas/standalone" --expanded --kubernetes --stand-alone "${SCHEMA}"
+          docker run -i -v "${VERSION_DIR}:/out/schemas" ghcr.io/yannh/openapi2jsonschema:latest \
+            -o "/out/schemas/standalone" --kubernetes --stand-alone "${SCHEMA}"
+          (cd "${VERSION_DIR}" && zip -r "kubernetes-json-schema-${K8S_VERSION}-standalone.zip" standalone)
+
+          # Generate local schemas
+          echo "Generating local schemas..."
+          docker run -i -v "${VERSION_DIR}:/out/schemas" ghcr.io/yannh/openapi2jsonschema:latest \
+            -o "/out/schemas/local" --expanded --kubernetes "${SCHEMA}"
+          docker run -i -v "${VERSION_DIR}:/out/schemas" ghcr.io/yannh/openapi2jsonschema:latest \
+            -o "/out/schemas/local" --kubernetes "${SCHEMA}"
+          (cd "${VERSION_DIR}" && zip -r "kubernetes-json-schema-${K8S_VERSION}-local.zip" local)
+
+          # Create artifact directory
+          ARTIFACT_DIR="${GITHUB_WORKSPACE}/test-artifacts"
+          mkdir -p "${ARTIFACT_DIR}"
+          cp "${VERSION_DIR}"/*.zip "${ARTIFACT_DIR}/"
+
+          # Validate ZIP files
+          echo "Validating generated ZIP files..."
+          for zip_file in "${ARTIFACT_DIR}"/*.zip; do
+            if ! unzip -t "$zip_file" > /dev/null; then
+              echo "Error: Invalid ZIP file: $zip_file"
+              exit 1
+            fi
+            echo "✓ Validated: $zip_file"
+          done
+
+          # Clean up version directory
+          rm -rf "${VERSION_DIR}"
+          echo "Completed test processing for ${K8S_VERSION}"
+
+      - name: Upload test artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: schema-test-artifacts
+          path: test-artifacts/*.zip
+          retention-days: 5
+
+      - name: Generate sample README
+        run: |
+          cat > README.md.test << 'EOF'
+          # Kubernetes JSON Schema
+
+          This repository provides JSON Schema files for Kubernetes versions 1.${MIN_K8S_VERSION}+.
+          The schemas are automatically generated using [openapi2jsonschema](https://github.com/yannh/openapi2jsonschema).
+
+          ## Usage
+
+          Download the schema version you need from the [Releases](../../releases) page.
+
+          Each release contains three ZIP files:
+          - standalone-strict: Schema files with strict validation
+          - standalone: Schema files with standard validation
+          - local: Schema files for local validation
+
+          ## Latest Update
+
+          Last updated: $(date -u '+%Y-%m-%d %H:%M:%S UTC')
+          EOF
+
+          echo "Sample README generated at README.md.test"
