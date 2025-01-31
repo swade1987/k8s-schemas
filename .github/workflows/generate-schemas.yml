@@ -1,10 +1,8 @@
 name: generate-schemas
 
 on:
-  pull_request:
-    branches: [ main ]
-#  schedule:
-#    - cron: '0 0 * * *'  # Run daily at midnight
+  schedule:
+    - cron: '0 0 * * *'  # Run daily at midnight
   workflow_dispatch:  # Allow manual triggers
 
 env:
@@ -93,8 +91,10 @@ jobs:
               --repo "${{ github.repository }}"
 
             # Clean up version directory
-            sudo rm -rf "${VERSION_DIR}"
+            sudo rm -rf "*.zip" \
+              "${K8S_VERSION}-standalone-strict/" \
+                "${K8S_VERSION}-standalone/" \
+                "${K8S_VERSION}-local/"
             echo "Completed processing ${K8S_VERSION}"
 
-            exit 1
           done
