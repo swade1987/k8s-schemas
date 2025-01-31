@@ -1,4 +1,4 @@
-name: Generate Kubernetes JSON Schemas
+name: generate-schemas
 
 on:
   schedule:
