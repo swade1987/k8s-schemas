@@ -25,33 +25,28 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y jq zip
 
-      - name: Get Kubernetes versions
-        id: get-versions
+      - name: Get and process Kubernetes versions
         run: |
-          # Get all K8s versions and filter for 1.29+
+          # Create temp directory with appropriate permissions
+          TEMP_DIR=$(mktemp -d)
+          chmod 777 "${TEMP_DIR}"
+          trap 'sudo rm -rf "${TEMP_DIR}"' EXIT
+
+          # Get K8s versions
           VERSIONS=$(curl -s https://api.github.com/repos/kubernetes/kubernetes/git/refs/tags | \
             jq -r '.[].ref' | \
             grep -o 'v1\.[0-9]\{2\}\.[0-9]\{1,2\}$' | \
             awk -v min=${{ env.MIN_K8S_VERSION }} 'BEGIN{FS="[.v]"} {if ($3 >= min) print $0}')
-          echo "VERSIONS=${VERSIONS}" >> $GITHUB_ENV
 
-      - name: Process each version
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
           # Function to check if release exists
           release_exists() {
             local version=$1
             gh release view "$version" --repo "${{ github.repository }}" >/dev/null 2>&1
           }
 
-          # Create temp directory with appropriate permissions
-          TEMP_DIR=$(mktemp -d)
-          chmod 777 "${TEMP_DIR}"
-          trap 'sudo rm -rf "${TEMP_DIR}"' EXIT
-
           # Process each version
-          for K8S_VERSION in $VERSIONS master; do
+          echo "Found versions: ${VERSIONS}"
+          for K8S_VERSION in ${VERSIONS} master; do
             echo "Processing version: ${K8S_VERSION}"
 
             # Skip if release already exists
@@ -96,15 +91,17 @@ jobs:
               --title "Kubernetes ${K8S_VERSION} JSON Schema" \
               --notes "JSON Schema files for Kubernetes ${K8S_VERSION}
 
-              ## Contents
-              - standalone-strict: Schema files with strict validation
-              - standalone: Schema files with standard validation
-              - local: Schema files for local validation
+  ## Contents
+  - standalone-strict: Schema files with strict validation
+  - standalone: Schema files with standard validation
+  - local: Schema files for local validation
 
-              Generated on: $(date -u '+%Y-%m-%d %H:%M:%S UTC')" \
-              --repo "${{ github.repository }}"
+Generated on: $(date -u '+%Y-%m-%d %H:%M:%S UTC')" \
+  --repo "${{ github.repository }}"
 
-          # Clean up version directory
-          sudo rm -rf "${VERSION_DIR}"
-          echo "Completed processing ${K8S_VERSION}"
-          done
+  # Clean up version directory
+  sudo rm -rf "${VERSION_DIR}"
+  echo "Completed processing ${K8S_VERSION}"
+  done
+  env:
+    GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
